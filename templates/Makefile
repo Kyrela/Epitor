@@ -2,7 +2,7 @@
 ## EPITECH PROJECT, $CURRENT_YEAR$
 ## $PROJECT_NAME$
 ## File description:
-## Makefile
+## $FILE_NAME$
 ##
 
 SRC	=	src/main.c    \

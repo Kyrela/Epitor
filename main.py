@@ -23,6 +23,8 @@ parser.add_argument('name', help='The name of the project (the name of the repo 
 parser.add_argument('-v', '--verbose', metavar='level', type=int, choices=[0, 1, 2],
                     help='The verbosity level, (from 0 to 2). 0 if non-precised, 1 if only the flag is included',
                     nargs='?', default=0)
+parser.add_argument('-n', '--no-push', action="store_true",
+                    help="Indicates that the program should not commit and push the repo")
 args = parser.parse_args()
 
 
@@ -36,6 +38,7 @@ log(f"Entering directory: {working_dir}", 2)
 script_dir = path.dirname(path.abspath(__file__))
 log(f"Generating project '{project_name}'...")
 url = args.url
+should_push = not args.no_push
 
 os.mkdir(path.join(working_dir, project_name))
 log(f"Created directory '{project_name}'", 2)
@@ -69,6 +72,13 @@ log(f"Binary file generated")
 with open(path.join(working_dir, '.git', 'info', 'exclude'), 'a', encoding='utf-8') as f:
     f.write(os.sep + project_name)
 log("Excluded binary file", 2)
+
+os.system("git add -A")
+log("Added files to git", 2)
+if should_push:
+    os.system(f'git commit -m "📍 Initial commit"{" -q" if verbosity != 2 else ""}')
+    os.system(f"git push --set-upstream origin master{' -q' if verbosity != 2 else ''}")
+    log("Project initialisation committed and pushed")
 
 log("--- Project generated ---")
 
