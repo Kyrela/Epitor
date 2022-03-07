@@ -26,17 +26,23 @@ def parser_generator():
     parser = argparse.ArgumentParser(
         description='This script is intended to clone and generate a Epitech C project automatically.')
     parser.add_argument('url', help='The empty repo url')
-    parser.add_argument('name', help='The name of the project (the name of the repo by default', nargs='?', default=None)
-    parser.add_argument('-v', '--verbose', metavar='level', type=int, choices=[0, 1, 2],
-                        help='The verbosity level, (from 0 to 2). 0 if non-precised, 1 if only the flag is included',
-                        nargs='?', default=0)
+    parser.add_argument('name', help='The name of the project (the name of the repo by default', nargs='?',
+                        default=None)
+    parser.add_argument('-q', '--quiet', action="store_true",
+                        help='Execute the program quietly (nothing will be displayed)')
+    parser.add_argument('-v', '--verbose', action="store_true",
+                        help='Execute the program with more information displayed on-screen')
     parser.add_argument('-p', '--no-push', action="store_true",
                         help="Indicates that the program should not commit and push the repo")
     return parser.parse_args()
 
 
 args = parser_generator()
-verbosity = args.verbose if args.verbose is not None else 1
+verbosity = 1
+if args.verbose:
+    verbosity = 2
+elif args.quiet:
+    verbosity = 0
 try:
     project_name = args.name if args.name else path.splitext(args.url.split('/')[-1])[0]
     working_dir = path.join(os.getcwd(), *project_name.split(path.sep)[:-1])
