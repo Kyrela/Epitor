@@ -86,6 +86,11 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
   </component>
   <component name="RunManager" selected="Makefile Application.$PROJECT_NAME$">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="$PROJECT_NAME$" type="CLionNativeAppRunConfigurationType" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="$PROJECT_NAME$" TARGET_NAME="$PROJECT_NAME$" CONFIG_NAME="$PROJECT_NAME$" version="1">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
