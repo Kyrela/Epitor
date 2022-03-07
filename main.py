@@ -8,6 +8,7 @@ import os
 from os import path
 from datetime import date
 import argparse
+from distutils import dir_util
 
 
 def log(message: str, verbosity_level: int = 1):
@@ -39,34 +40,25 @@ url = args.url
 os.mkdir(path.join(working_dir, project_name))
 log(f"Created directory '{project_name}'", 2)
 os.chdir(path.join(working_dir, project_name))
-log(f"Changed working directory to '{os.getcwd()}'", 2)
+working_dir = os.getcwd()
+log(f"Changed working directory to '{working_dir}'", 2)
 
 os.system(f"git init{' -q' if verbosity != 2 else ''}")
 os.system(f"git remote add origin {args.url}")
 log(f"Repo '{url}' initialised")
 
+dir_util.copy_tree(path.join(script_dir, 'templates'), working_dir)
+os.mkdir(path.join(working_dir, "subject"))
+log(f"Copied project template", 2)
 
-os.mkdir(path.join(working_dir, project_name, "subject"))
-log(f"Created directory 'subject'", 2)
-os.mkdir(path.join(working_dir, project_name, "src"))
-log(f"Created directory 'src'", 2)
-#os.mkdir(path.join(working_dir, project_name, ".idea"))
-log(f"Created directory '.idea'", 2)
-
-os.system(f"cp {path.join(script_dir, 'templates', 'main.c')} {path.join(working_dir, project_name, 'src', 'main.c')}")
-os.system(f"sed -i 's/\\$PROJECT_NAME\\$/{project_name}/g' {path.join(working_dir, project_name, 'src', 'main.c')}")
-os.system(f"sed -i 's/\\$CURRENT_YEAR\\$/{date.today().year}/g' {path.join(working_dir, project_name, 'src', 'main.c')}")
-os.system(f"sed -i 's/\\$FILE_NAME\\$/main.c.c/g' {path.join(working_dir, project_name, 'src', 'main.c')}")
-log(f"Generated 'main.c.c' in 'src'", 2)
-
-os.system(f"cp {path.join(script_dir, 'templates', 'Makefile')} {path.join(working_dir, project_name, 'Makefile')}")
-os.system(f"sed -i 's/\\$PROJECT_NAME\\$/{project_name}/g' {path.join(working_dir, project_name, 'Makefile')}")
-os.system(f"sed -i 's/\\$CURRENT_YEAR\\$/{date.today().year}/g' {path.join(working_dir, project_name, 'Makefile')}")
-log(f"Generated 'Makefile'", 2)
-
-#os.system(f"cp {path.join(script_dir, 'templates', 'discord.xml')} "
- #         f"{path.join(working_dir, project_name, '.idea', 'discord.xml')}")
-log(f"Generated configuration files", 2)
+for r, d, f in os.walk(working_dir):
+    if '.git' in r:
+        continue
+    for file in f:
+        os.system(f"sed -i 's/\\$PROJECT_NAME\\$/{project_name}/g' {path.join(r, file)}")
+        os.system(f"sed -i 's/\\$CURRENT_YEAR\\$/{date.today().year}/g' {path.join(r, file)}")
+        os.system(f"sed -i 's/\\$FILE_NAME\\$/{file}/g' {path.join(r, file)}")
+log(f"Filled project files", 2)
 
 log("Files generated")
 
@@ -74,7 +66,10 @@ os.system(f"make{' -s' if verbosity != 2 else ''}")
 os.system(f"make clean{' -s' if verbosity != 2 else ''}")
 log(f"Binary file generated")
 
+with open(path.join(working_dir, '.git', 'info', 'exclude'), 'a', encoding='utf-8') as f:
+    f.write(os.sep + project_name)
+log("Excluded binary file", 2)
+
 log("--- Project generated ---")
 
-
-os.system(f"nohup clion {os.getcwd()} 2> /dev/null &")
+os.system(f"nohup clion {os.getcwd()} >/dev/null 2>&1 &")
