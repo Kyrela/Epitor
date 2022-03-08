@@ -34,10 +34,10 @@ def markup(message, style="default", color="fg_default"):
 
 def parser_generator():
     parser = argparse.ArgumentParser(
-        description='This script is intended to clone and generate a Epitech C project automatically.')
-    parser.add_argument('language', help="The project language. both 'c' and 'cpp' are supported", choices=['c', 'cpp'])
+        prog="generate", description='This script is intended to clone and generate a Epitech C project automatically.')
+    parser.add_argument('language', help="The project language", choices=['c', 'cpp'])
     parser.add_argument('url', help='The empty repo url')
-    parser.add_argument('name', help='The name of the project (the name of the repo by default', nargs='?',
+    parser.add_argument('name', help='The name of the project (the name of the repo by default)', nargs='?',
                         default=None)
     parser.add_argument('-q', '--quiet', action="store_true",
                         help='Execute the program quietly (nothing will be displayed)')
