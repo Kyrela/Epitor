@@ -23,11 +23,12 @@ $(NAME):	$(OBJ)
 clean:
 	find -name "*.o" -delete
 	find -name "*.gc*" -delete
-	find -name "*.*~" -delete
 	find -name "*~" -delete
 	find -name "#*#" -delete
-	find -name "*.vgcore" -delete
+	find -name "*vgcore*" -delete
 	find -name "*.out" -delete
+	find -name "__pycache__" -delete
+	find -name "*.hi" -delete
 
 fclean:		clean
 	rm -f $(NAME)

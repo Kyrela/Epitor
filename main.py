@@ -96,8 +96,11 @@ try:
     log(f"🧹 Object files and temporary files deleted", 2)
 
     with open(path.join(working_dir, '.git', 'info', 'exclude'), 'a', encoding='utf-8') as f:
-        f.write(os.sep + project_name)
-    log("⛔ Excluded binary file", 2)
+        f.write("\n".join([
+            os.sep + project_name, os.sep + ".idea", os.sep + ".vscode", "__pychache__", "*.o", "*vgcore*", "*.hi",
+            "*.gc*", os.sep + "subject", "*~", "\\#*#", "*.out"
+        ]))
+    log("⛔ Added temporary files to local gitignore", 2)
 
     exec("git add -A")
     log("➕ Added files to git", 2)
