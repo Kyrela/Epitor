@@ -35,6 +35,7 @@ def markup(message, style="default", color="fg_default"):
 def parser_generator():
     parser = argparse.ArgumentParser(
         description='This script is intended to clone and generate a Epitech C project automatically.')
+    parser.add_argument('language', help="The project language. both 'c' and 'cpp' are supported", choices=['c', 'cpp'])
     parser.add_argument('url', help='The empty repo url')
     parser.add_argument('name', help='The name of the project (the name of the repo by default', nargs='?',
                         default=None)
@@ -54,6 +55,7 @@ if args.verbose:
 elif args.quiet:
     verbosity = 0
 try:
+    language = args.language
     project_name = args.name if args.name else path.splitext(args.url.split('/')[-1])[0]
     working_dir = path.join(os.getcwd(), *project_name.split(path.sep)[:-1])
     project_name = project_name.split(path.sep)[-1]
@@ -75,7 +77,7 @@ try:
     exec(f"git remote add origin {args.url}")
     log(f"🌐 Repo '{url}' initialised")
 
-    dir_util.copy_tree(path.join(script_dir, 'templates'), working_dir)
+    dir_util.copy_tree(path.join(script_dir, 'templates', language), working_dir)
     os.mkdir(path.join(working_dir, "subject"))
     log(f"💾 Copied project template", 2)
 
