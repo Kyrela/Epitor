@@ -5,7 +5,7 @@
 ## $FILE_NAME$
 ##
 
-SRC	=	src/main.c    \
+SRC	=	src/main.cpp    \
 
 OBJ	=	$(SRC:.cpp=.o)
 
