@@ -92,7 +92,7 @@ try:
 
     log("📑 Files generated")
 
-    exec(f"make{' -s' if verbosity != 2 else ''}")
+    exec(f"make{' -si' if verbosity != 2 else ''}")
     log(f"💲 Binary file generated")
     exec(f"make clean{' -s' if verbosity != 2 else ''}")
     log(f"🧹 Object files and temporary files deleted", 2)
@@ -100,7 +100,7 @@ try:
     with open(path.join(working_dir, '.git', 'info', 'exclude'), 'a', encoding='utf-8') as f:
         f.write("\n".join([
             os.sep + project_name, os.sep + ".idea", os.sep + ".vscode", "__pychache__", "*.o", "*vgcore*", "*.hi",
-            "*.gc*", os.sep + "subject", "*~", "\\#*#", "*.out"
+            "*.gc*", os.sep + "subject", "*~", "\\#*#", "*.out", "*.so"
         ]))
     log("⛔ Added temporary files to local gitignore", 2)
 
