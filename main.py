@@ -13,16 +13,38 @@ from distutils import dir_util
 
 
 def log(message: str, verbosity_level: int = 1):
+    """
+    Prints a message if the verbosity level is high enough
+
+    :param message: str - the message to print
+    :type message: str
+    :param verbosity_level: The higher the verbosity level, the more information you'll get, defaults to 1
+    :type verbosity_level: int (optional)
+    """
     if verbosity >= verbosity_level:
         print(message)
 
 
-def exec(command: str):
+def exec_command(command: str):
+    """
+    Execute the given command and exit if it fails
+
+    :param command: The command to execute
+    :type command: str
+    """
     if os.system(command) != 0:
         exit(1)
 
 
 def markup(message, style="default", color="fg_default"):
+    """
+    This function takes a message and returns it with a markup
+
+    :param message: The message you want to print
+    :param style: The style of the text, defaults to default (optional)
+    :param color: The color of the text, defaults to fg_default (optional)
+    :return: A string with the message and the markup.
+    """
     colors = {"bg_black": 40, "bg_red": 41, "bg_green": 42, "bg_orange": 43, "bg_blue": 44, "bg_magenta": 45,
               "bg_cyan": 46, "bg_light_grey": 47, "bg_default": 49, "bg_dark_grey": 100, "bg_light_red": 101,
               "bg_light_green": 102, "bg_yellow": 103, "bg_light_blue": 104, "bg_light_purple": 105, "bg_teal": 106,
@@ -33,6 +55,10 @@ def markup(message, style="default", color="fg_default"):
 
 
 def parser_generator():
+    """
+    It creates a parser object, adds arguments to it, and returns the result of parsing the arguments
+    :return: A dictionnary containing the arguments of the program.
+    """
     parser = argparse.ArgumentParser(
         prog="generate", description='This script is intended to clone and generate a Epitech C project automatically.')
     parser.add_argument('language', help="The project language", choices=['c', 'cpp'])
@@ -73,8 +99,8 @@ try:
     working_dir = os.getcwd()
     log(f"📍 Changed working directory to '{working_dir}'", 2)
 
-    exec(f"git init{' -q' if verbosity != 2 else ''}")
-    exec(f"git remote add origin {args.url}")
+    exec_command(f"git init{' -q' if verbosity != 2 else ''}")
+    exec_command(f"git remote add origin {args.url}")
     log(f"🌐 Repo '{url}' initialised")
 
     dir_util.copy_tree(path.join(script_dir, 'templates', language), working_dir)
@@ -85,16 +111,16 @@ try:
         if '.git' in r:
             continue
         for file in f:
-            exec(f"sed -i 's/\\$PROJECT_NAME\\$/{project_name}/g' {path.join(r, file)}")
-            exec(f"sed -i 's/\\$CURRENT_YEAR\\$/{date.today().year}/g' {path.join(r, file)}")
-            exec(f"sed -i 's/\\$FILE_NAME\\$/{file}/g' {path.join(r, file)}")
+            exec_command(f"sed -i 's/\\$PROJECT_NAME\\$/{project_name}/g' {path.join(r, file)}")
+            exec_command(f"sed -i 's/\\$CURRENT_YEAR\\$/{date.today().year}/g' {path.join(r, file)}")
+            exec_command(f"sed -i 's/\\$FILE_NAME\\$/{file}/g' {path.join(r, file)}")
     log(f"📝 Filled project files", 2)
 
     log("📑 Files generated")
 
-    exec(f"make{' -si' if verbosity != 2 else ''}")
+    exec_command(f"make{' -si' if verbosity != 2 else ''}")
     log(f"💲 Binary file generated")
-    exec(f"make clean{' -s' if verbosity != 2 else ''}")
+    exec_command(f"make clean{' -s' if verbosity != 2 else ''}")
     log(f"🧹 Object files and temporary files deleted", 2)
 
     with open(path.join(working_dir, '.git', 'info', 'exclude'), 'a', encoding='utf-8') as f:
@@ -104,11 +130,11 @@ try:
         ]))
     log("⛔ Added temporary files to local gitignore", 2)
 
-    exec("git add -A")
+    exec_command("git add -A")
     log("➕ Added files to git", 2)
     if should_push:
-        exec(f'git commit -m "📍 Initial commit"{" -q" if verbosity != 2 else ""}')
-        exec(f"git push --set-upstream origin master{' -q' if verbosity != 2 else ''}")
+        exec_command(f'git commit -m "📍 Initial commit"{" -q" if verbosity != 2 else ""}')
+        exec_command(f"git push --set-upstream origin master{' -q' if verbosity != 2 else ''}")
         log("📤 Project initialisation committed and pushed")
 
     log("\n" + markup("✅ Project generated ", style="bold", color="bg_green") + markup("", color="fg_green"))
