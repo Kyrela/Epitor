@@ -5,20 +5,39 @@
 ## $FILE_NAME$
 ##
 
-SRC	=	src/main.cpp    \
-
-OBJ	=	$(SRC:.cpp=.o)
+.SILENT:
 
 NAME	= $PROJECT_NAME$
 
-CC	=	g++
+SRC	=	$(wildcard src/*.cpp)	\
 
-CPPFLAGS	=	-std=c++20 -Wall -Wextra -g3
+INCLUDES	= include
+
+
+OBJ	=	$(SRC:.cpp=.o)
+CC	=	g++
+CPPFLAGS	=	-std=c++11 -Wall -Werror -g3 $(INCLUDES:%=-I %)
+
+ifndef PERCENT
+	T := $(shell $(MAKE) $(MAKECMDGOALS) --no-print-directory \
+		-nrRf $(firstword $(MAKEFILE_LIST)) \
+	    PERCENT="COUNTTHIS" | grep -c "COUNTTHIS")
+    N := x
+    C = $(words $N)$(eval N := x $N)
+    PERCENT = [`expr $C '*' 100 / $T`%]
+endif
 
 all:	$(NAME)
+	echo -e "\e[32m$(PERCENT) All done\e[39m"
 
 $(NAME):	$(OBJ)
-	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
+	echo -e "\e[33m$(PERCENT)\e[37m Linking .o files..."
+	$(CC) $(CPPFLAGS) $^ -o $@
+	echo -e "\e[32m$(PERCENT) Compilation succeeded: $(NAME)"
+
+%.o: %.cpp
+	$(CC) $(CPPFLAGS) -o $@ -c $<
+	echo -e "\e[33m$(PERCENT)\e[37m Compiling $@..."
 
 clean:
 	find -name "*.o" -delete
@@ -29,8 +48,13 @@ clean:
 	find -name "*.out" -delete
 	find -name "__pycache__" -delete
 	find -name "*.hi" -delete
+	echo -e "\e[37m$(PERCENT) Undesirable files deleted"
 
 fclean:		clean
 	rm -f $(NAME)
+	echo -e "\e[37m$(PERCENT) Binary files deleted"
 
-re:	fclean all
+re:	fclean $(NAME)
+	echo -e "\e[32m$(PERCENT) Re-compilation done"
+
+.PHONY: all $(NAME) clean fclean re
