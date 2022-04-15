@@ -16,7 +16,7 @@ INCLUDES	= include
 
 OBJ	=	$(SRC:.cpp=.o)
 CC	=	g++
-CPPFLAGS	=	-std=c++11 -Wall -Werror -g3 $(INCLUDES:%=-I %)
+CPPFLAGS	=	-std=c++11 -Wall -Wextra -g3 $(INCLUDES:%=-I %)
 
 ifndef PERCENT
 	T := $(shell $(MAKE) $(MAKECMDGOALS) --no-print-directory \
