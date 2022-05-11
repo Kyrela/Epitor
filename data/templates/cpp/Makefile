@@ -7,37 +7,51 @@
 
 .SILENT:
 
+####################################################################### Settings
+
 NAME	= $PROJECT_NAME$
+CPPFLAGS	= -std=c++11 -Wall -Wextra
+INCLUDE_DIRS	= include src
+SRC_DIRS	= src
 
-SRC	=	$(wildcard src/*.cpp)	\
+######################################################### Advanced configuration
 
-INCLUDES	= include
+INCLUDES	= $(call dwildcard,$(INCLUDE_DIRS))
+SRC	=	$(call rwildcard,$(SRC_DIRS),*.cpp)
+CPPFLAGS	+= $(INCLUDES:%=-I %)
+OBJ	= $(SRC:.cpp=.o)
+CPPC	= g++
 
+rwildcard	= $(foreach d,$(wildcard $(1:=/*)),\
+			$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+dwildcard	= $(foreach d,$1,$(shell test -d $d && find $d -type d))
 
-OBJ	=	$(SRC:.cpp=.o)
-CC	=	g++
-CPPFLAGS	=	-std=c++11 -Wall -Wextra -g3 $(INCLUDES:%=-I %)
+######################################################################### Colors
 
-ifndef PERCENT
-	T := $(shell $(MAKE) $(MAKECMDGOALS) --no-print-directory \
-		-nrRf $(firstword $(MAKEFILE_LIST)) \
-	    PERCENT="COUNTTHIS" | grep -c "COUNTTHIS")
-    N := x
-    C = $(words $N)$(eval N := x $N)
-    PERCENT = [`expr $C '*' 100 / $T`%]
-endif
+CGREEN		=	"\\e[32m"
+CRED		=	"\\e[31m"
+CYELLOW		=	"\\e[33m"
+CBLUE2		=	"\\e[34m"
+CGREY		=	"\\e[37m"
+CDEFAULT	=	"\\e[39m"
+
+########################################################################## Rules
 
 all:	$(NAME)
-	echo -e "\e[32m$(PERCENT) All done\e[39m"
+	@echo -e "$(CGREEN)✔ All done$(CDEFAULT)"
 
 $(NAME):	$(OBJ)
-	echo -e "\e[33m$(PERCENT)\e[37m Linking .o files..."
-	$(CC) $(CPPFLAGS) $^ -o $@
-	echo -e "\e[32m$(PERCENT) Compilation succeeded: $(NAME)"
+	@echo -e "$(CYELLOW)⤋ Linking .o files...$(CDEFAULT)"
+	$(CPPC) $^ -o $@ $(CPPFLAGS)
+	@echo -e "$(CGREEN)✔ Compilation succeeded: $(NAME)$(CDEFAULT)"
 
 %.o: %.cpp
-	$(CC) $(CPPFLAGS) -o $@ -c $<
-	echo -e "\e[33m$(PERCENT)\e[37m Compiling $@..."
+	@echo -e "$(CYELLOW)↓ Compiling $@...$(CDEFAULT)"
+	$(CPPC) -o $@ -c $< $(CPPFLAGS)
+
+debug:	CPPFLAGS += -g3
+debug:	$(NAME)
+	@echo -e "$(CGREEN)⚙ Debug possible on $(NAME)$(CDEFAULT)"
 
 clean:
 	find -name "*.o" -delete
@@ -48,13 +62,15 @@ clean:
 	find -name "*.out" -delete
 	find -name "__pycache__" -delete
 	find -name "*.hi" -delete
-	echo -e "\e[37m$(PERCENT) Undesirable files deleted"
+	@echo -e "$(CGREY)✗ Undesirable files deleted$(CDEFAULT)"
 
 fclean:		clean
 	rm -f $(NAME)
-	echo -e "\e[37m$(PERCENT) Binary files deleted"
+	@echo -e "$(CGREY)✗ Binary files deleted$(CDEFAULT)"
 
 re:	fclean $(NAME)
-	echo -e "\e[32m$(PERCENT) Re-compilation done"
+	@echo -e "$(CGREEN)⟳ Re-compilation done$(CDEFAULT)"
 
-.PHONY: all $(NAME) clean fclean re
+########################################################################## Phony
+
+.PHONY: all $(NAME) debug clean fclean re

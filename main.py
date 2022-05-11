@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 
 """
-This script is intended to clone and generate a Epitech C project automatically.
+This script is intended to clone and generate an Epitech C project automatically.
 """
 
 import os
 import sys
+import traceback
 from os import path
 from datetime import date
-import argparse
+import configargparse
 from distutils import dir_util
+import toml
+
+home = os.getenv("HOME")
+
+__version__ = "0.1"
 
 
 def log(message: str, verbosity_level: int = 1):
@@ -21,7 +27,7 @@ def log(message: str, verbosity_level: int = 1):
     :param verbosity_level: The higher the verbosity level, the more information you'll get, defaults to 1
     :type verbosity_level: int (optional)
     """
-    if verbosity >= verbosity_level:
+    if args.verbosity >= verbosity_level:
         print(message)
 
 
@@ -36,7 +42,7 @@ def exec_command(command: str):
         exit(1)
 
 
-def markup(message, style="default", color="fg_default"):
+def markup(message, color="fg_default", style="default"):
     """
     This function takes a message and returns it with a markup
 
@@ -57,89 +63,95 @@ def markup(message, style="default", color="fg_default"):
 def parser_generator():
     """
     It creates a parser object, adds arguments to it, and returns the result of parsing the arguments
-    :return: A dictionnary containing the arguments of the program.
+    :return: A dictionary containing the arguments of the program.
     """
-    parser = argparse.ArgumentParser(
-        prog="generate", description='This script is intended to clone and generate a Epitech C project automatically.')
+    parser = configargparse.ArgumentParser(
+        default_config_files=[f"{home}/.config/epitor/config.toml"], prog="epitor",
+        description='This script is intended to initialize and generate a programming project automatically.')
     parser.add_argument('language', help="The project language", choices=['c', 'cpp'])
     parser.add_argument('url', help='The empty repo url')
     parser.add_argument('name', help='The name of the project (the name of the repo by default)', nargs='?',
                         default=None)
     parser.add_argument('-q', '--quiet', action="store_true",
                         help='Execute the program quietly (nothing will be displayed)')
-    parser.add_argument('-v', '--verbose', action="store_true",
+    parser.add_argument('-V', '--verbose', action="store_true",
                         help='Execute the program with more information displayed on-screen')
-    parser.add_argument('-p', '--no-push', action="store_true",
-                        help="Indicates that the program should not commit and push the repo")
+    parser.add_argument('-p', '--push', action="store_true",
+                        help="Indicates that the program should commit and push the generation result")
+    parser.add_argument('-P', '--no-push', action="store_true",
+                        help="Indicates that the program should not commit and push the generation result "
+                             "(silent --push)")
+    parser.add_argument('-i', '--ide', action="store_true",
+                        help="Indicate that the program should launch the IDE")
+    parser.add_argument('-I', '--no-ide', action="store_true",
+                        help="Indicate that the program should not launch the IDE (silent --ide)")
+    parser.add_argument('--ide-path', help="The path of the IDE")
     return parser.parse_args()
 
 
 args = parser_generator()
-verbosity = 1
+args.verbosity = 1
 if args.verbose:
-    verbosity = 2
+    args.verbosity = 2
 elif args.quiet:
-    verbosity = 0
+    args.verbosity = 0
+
+variables = toml.load(f"{home}/.config/epitor/variables.toml")
+
 try:
-    language = args.language
-    project_name = args.name if args.name else path.splitext(args.url.split('/')[-1])[0]
-    working_dir = path.join(os.getcwd(), *project_name.split(path.sep)[:-1])
-    project_name = project_name.split(path.sep)[-1]
-    project_name = project_name.replace(' ', '_')
-    os.chdir(working_dir)
-    log(f"📥 Entering directory: {working_dir}", 2)
+    args.name = args.name or path.splitext(args.url.split('/')[-1])[0]
+    working_dir = path.join(os.getcwd(), *args.name.split(path.sep)[:-1])
+    args.name = args.name.split(path.sep)[-1].replace(' ', '_')
+    log(markup("Entering directory: " + repr(working_dir), 'fg_light_grey'), 2)
     script_dir = path.dirname(path.abspath(__file__))
-    log(f"🔨 Generating project '{project_name}'...")
-    url = args.url
-    should_push = not args.no_push
+    log(f"Generating project {markup(repr(args.name), 'fg_green')}...\n")
 
-    os.mkdir(path.join(working_dir, project_name))
-    log(f"📂 Created directory '{project_name}'", 2)
-    os.chdir(path.join(working_dir, project_name))
+    os.mkdir(path.join(working_dir, args.name))
+    log(f"- Created directory {markup(repr(args.name), 'fg_light_grey')}", 2)
+    os.chdir(path.join(working_dir, args.name))
     working_dir = os.getcwd()
-    log(f"📍 Changed working directory to '{working_dir}'", 2)
+    os.chdir(working_dir)
+    log(f"- Changed working directory to {markup(repr(working_dir), 'fg_light_grey')}", 2)
 
-    exec_command(f"git init{' -q' if verbosity != 2 else ''}")
+    exec_command(f"git init{' -q' if args.verbosity != 2 else ''}")
     exec_command(f"git remote add origin {args.url}")
-    log(f"🌐 Repo '{url}' initialised")
+    log(f"- Repo {markup(repr(args.url), 'fg_light_grey')} initialised")
 
-    dir_util.copy_tree(path.join(script_dir, 'templates', language), working_dir)
+    dir_util.copy_tree(path.join(f"{home}/.config/epitor/templates", args.language), working_dir)
     os.mkdir(path.join(working_dir, "subject"))
-    log(f"💾 Copied project template", 2)
+    log(f"- Copied project template", 2)
+
+    exec_command(f"cp {home}/.config/epitor/gitignore_model.txt {working_dir}/.git/info/exclude")
+    log("- Added temporary files to local gitignore", 2)
 
     for r, d, f in os.walk(working_dir):
-        if '.git' in r:
-            continue
         for file in f:
-            exec_command(f"sed -i 's/\\$PROJECT_NAME\\$/{project_name}/g' {path.join(r, file)}")
-            exec_command(f"sed -i 's/\\$CURRENT_YEAR\\$/{date.today().year}/g' {path.join(r, file)}")
-            exec_command(f"sed -i 's/\\$FILE_NAME\\$/{file}/g' {path.join(r, file)}")
-    log(f"📝 Filled project files", 2)
+            for var, code in variables.items():
+                exec_command(f"sed -i 's/\\${var}\\$/{eval(code)}/g' {path.join(r, file)}")
+    log(f"- Filled project files", 2)
 
-    log("📑 Files generated")
+    log("- Files generated")
 
-    exec_command(f"make{' -si' if verbosity != 2 else ''}")
-    log(f"💲 Binary file generated")
-    exec_command(f"make clean{' -s' if verbosity != 2 else ''}")
-    log(f"🧹 Object files and temporary files deleted", 2)
-
-    with open(path.join(working_dir, '.git', 'info', 'exclude'), 'a', encoding='utf-8') as f:
-        f.write("\n".join([
-            os.sep + project_name, os.sep + ".idea", os.sep + ".vscode", "__pychache__", "*.o", "*vgcore*", "*.hi",
-            "*.gc*", os.sep + "subject", "*~", "\\#*#", "*.out", "*.so"
-        ]))
-    log("⛔ Added temporary files to local gitignore", 2)
+    exec_command(f"make{' &> /dev/null' if args.verbosity != 2 else ''}")
+    log(f"- {markup(repr(args.name), 'fg_light_grey')} binary file generated")
+    exec_command(f"make clean{' &> /dev/null' if args.verbosity != 2 else ''}")
+    log(f"- Object files and temporary files deleted", 2)
 
     exec_command("git add -A")
-    log("➕ Added files to git", 2)
-    if should_push:
-        exec_command(f'git commit -m "📍 Initial commit"{" -q" if verbosity != 2 else ""}')
-        exec_command(f"git push --set-upstream origin master{' -q' if verbosity != 2 else ''}")
-        log("📤 Project initialisation committed and pushed")
+    log("- Added files to git", 2)
+    if args.push and not args.no_push:
+        exec_command(f'git commit -m "📍 Initial commit"{" -q" if args.verbosity != 2 else ""}')
+        exec_command(f"git push --set-upstream origin master{' -q' if args.verbosity != 2 else ''}")
+        log("- Project committed and pushed")
 
-    log("\n" + markup("✅ Project generated ", style="bold", color="bg_green") + markup("", color="fg_green"))
+    log("\n" + markup("✔ Project generated ", style="bold", color="fg_green"))
 
-    os.system(f"nohup clion {os.getcwd()} >/dev/null 2>&1 &")
+    if args.ide and not args.no_ide:
+        if not args.ide_path:
+            raise RuntimeError("The IDE path isn't found. Can't launch the IDE")
+        os.system(f"nohup {args.ide_path} {os.getcwd()} >/dev/null 2>&1 &")
+        log(markup(repr(args.ide_path) + " launched", 'fg_light_grey'), 2)
 except Exception as e:
+    traceback.print_exception(type(e), e, e.__traceback__)
     print(markup(e, style="bold", color="fg_red"), file=sys.stderr)
     exit(1)

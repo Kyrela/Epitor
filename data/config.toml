@@ -1,0 +1,8 @@
+# The Epitor configuration file.
+# You can easily add your own default options here,
+# such as:
+#
+# ide-path = "clion"
+#
+# Just uncomment the line abose to use clion as you default ide.
+

@@ -1,0 +1,7 @@
+# The Epitor variables file.
+# This file is useful to add new automated variables for your templates without modifying the source code.
+# Add the desired variable name, followed by its python code. This could require a good understanding of the code.
+
+PROJECT_NAME = "args.name"
+CURRENT_YEAR = "date.today().year"
+FILE_NAME = "file"
