@@ -90,3 +90,6 @@ le code précédemment modifié)
 - Une meilleure documentation concernant les options de customisation sera disponible
 - Le readme sera entièrement en anglais, tout comme le reste du repo.
 - Le fichier `install.sh` sera amélioré et un fichier d'installation en ligne sera proposé
+
+Je ne sais pas encore si Epitor sera à l'avenir dédié _uniquement_ aux projects Epitech, étant donné sa nature
+dynamique. Cependant, il sera toujours utilisable _pour_ les projets Epitech, peu importe le public ciblé.
