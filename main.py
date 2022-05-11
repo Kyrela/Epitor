@@ -118,7 +118,6 @@ try:
     log(f"- Repo {markup(repr(args.url), 'fg_light_grey')} initialised")
 
     dir_util.copy_tree(path.join(f"{home}/.config/epitor/templates", args.language), working_dir)
-    os.mkdir(path.join(working_dir, "subject"))
     log(f"- Copied project template", 2)
 
     exec_command(f"cp {home}/.config/epitor/gitignore_model.txt {working_dir}/.git/info/exclude")
